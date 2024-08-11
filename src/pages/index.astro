@@ -8,68 +8,68 @@ import "../styles.css"; // Import Tailwind and DaisyUI styles
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>T-Shirt Cost Calculator with Dynamic Gang Sheet Options</title>
     <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"
-      onload="
-        document.addEventListener('DOMContentLoaded', function () {
+    src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"
+    onload="
+      document.addEventListener('DOMContentLoaded', function () {
+        
+        function calculateCost() {
+          const tshirtCost = parseFloat(document.getElementById('tshirtCost').value);
+          const designWidth = parseFloat(document.getElementById('designWidth').value);
+          const designLength = parseFloat(document.getElementById('designLength').value);
           
-          function calculateCost() {
-            const tshirtCost = parseFloat(document.getElementById('tshirtCost').value);
-            const designWidth = parseFloat(document.getElementById('designWidth').value);
-            const designLength = parseFloat(document.getElementById('designLength').value);
+          const gangSheetData = document.getElementById('gangSheetSize').value.split(',');
+          const gangSheetWidth = parseFloat(gangSheetData[0]);
+          const gangSheetLength = parseFloat(gangSheetData[1]);
+          const gangSheetCost = parseFloat(gangSheetData[2]);
+          
+          if (!isNaN(tshirtCost) && !isNaN(designWidth) && !isNaN(designLength)) {
+            const graphicsAcrossWidth = Math.floor(gangSheetWidth / designWidth);
+            const graphicsAcrossLength = Math.floor(gangSheetLength / designLength);
             
-            const gangSheetData = document.getElementById('gangSheetSize').value.split(',');
-            const gangSheetWidth = parseFloat(gangSheetData[0]);
-            const gangSheetLength = parseFloat(gangSheetData[1]);
-            const gangSheetCost = parseFloat(gangSheetData[2]);
+            const totalGraphics = graphicsAcrossWidth * graphicsAcrossLength;
+            const costPerGraphic = gangSheetCost / totalGraphics;
             
-            if (!isNaN(tshirtCost) && !isNaN(designWidth) && !isNaN(designLength)) {
-              const graphicsAcrossWidth = Math.floor(gangSheetWidth / designWidth);
-              const graphicsAcrossLength = Math.floor(gangSheetLength / designLength);
-              
-              const totalGraphics = graphicsAcrossWidth * graphicsAcrossLength;
-              const costPerGraphic = gangSheetCost / totalGraphics;
-              
-              const totalCost = tshirtCost + costPerGraphic;
-              
-              document.getElementById('totalCost').innerText = totalCost.toFixed(2);
-              document.getElementById('designsPerSheet').innerText = totalGraphics;
-              document.getElementById('gangSheetCost').innerText = gangSheetCost.toFixed(2);
-            }
+            const totalCost = tshirtCost + costPerGraphic;
+            
+            document.getElementById('totalCost').innerText = totalCost.toFixed(2);
+            document.getElementById('designsPerSheet').innerText = `${totalGraphics} @ $${costPerGraphic.toFixed(2)}`;
+            document.getElementById('gangSheetCost').innerText = gangSheetCost.toFixed(2);
           }
+        }
 
-          Papa.parse('/costalator/price_table.csv', {
-            download: true,
-            header: true,
-            complete: function (results) {
-              populateDropdown(results.data);
-              calculateCost(); // Initial calculation with default values
+        Papa.parse('/costalator/price_table.csv', {
+          download: true,
+          header: true,
+          complete: function (results) {
+            populateDropdown(results.data);
+            calculateCost(); // Initial calculation with default values
+          }
+        });
+
+        function populateDropdown(data) {
+          const dropdown = document.getElementById('gangSheetSize');
+          data.forEach((item, index) => {
+            if (item.Width && item.Length && item.Price) {
+              const option = document.createElement('option');
+              const lengthInFeet = (parseFloat(item.Length) / 12).toFixed(2);
+              option.value = `${item.Width},${item.Length},${item.Price}`;
+              option.text = `${lengthInFeet}ft`;
+              dropdown.add(option);
+            } else {
+              console.error(`Missing data on row ${index + 1}`, item);
             }
           });
 
-          function populateDropdown(data) {
-            const dropdown = document.getElementById('gangSheetSize');
-            data.forEach((item, index) => {
-              if (item.Width && item.Length && item.Price) {
-                const option = document.createElement('option');
-                const lengthInFeet = (parseFloat(item.Length) / 12).toFixed(2);
-                option.value = `${item.Width},${item.Length},${item.Price}`;
-                option.text = `${lengthInFeet}ft`;
-                dropdown.add(option);
-              } else {
-                console.error(`Missing data on row ${index + 1}`, item);
-              }
-            });
+          dropdown.addEventListener('change', calculateCost); // Update on dropdown change
+        }
 
-            dropdown.addEventListener('change', calculateCost); // Update on dropdown change
-          }
-
-          // Attach event listeners to input fields
-          document.getElementById('tshirtCost').addEventListener('input', calculateCost);
-          document.getElementById('designWidth').addEventListener('input', calculateCost);
-          document.getElementById('designLength').addEventListener('input', calculateCost);
-        });
-      "
-    ></script>
+        // Attach event listeners to input fields
+        document.getElementById('tshirtCost').addEventListener('input', calculateCost);
+        document.getElementById('designWidth').addEventListener('input', calculateCost);
+        document.getElementById('designLength').addEventListener('input', calculateCost);
+      });
+    "
+  ></script>
   </head>
   <body class="min-h-screen flex items-center justify-center bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
     <div id="wrap" class="max-w-xl w-full mx-auto bg-base-200 p-6 rounded-lg shadow-lg">
@@ -117,7 +117,7 @@ import "../styles.css"; // Import Tailwind and DaisyUI styles
             <p class="text-sm font-medium text-gray-700">Total Designs</p>
             <div class="card bg-cyan-500/25 border border-cyan-600 hover:border-cyan-400 text-white w-full h-full flex items-center justify-center">
               <div class="p-4">
-                <p class="text-xl font-semibold"><span id="designsPerSheet">0</span></p>
+                <p class="text-lg font-semibold"><span id="designsPerSheet">0 @ $0.00</span></p>
               </div>
             </div>
           </div>
