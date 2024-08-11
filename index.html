@@ -1,60 +1,63 @@
-<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>T-Shirt Cost Calculator with Dynamic Gang Sheet Options</title><script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js" onload="
-        document.addEventListener('DOMContentLoaded', function () {
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>T-Shirt Cost Calculator with Dynamic Gang Sheet Options</title><script
+  src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"
+  onload="
+    document.addEventListener('DOMContentLoaded', function () {
+      
+      function calculateCost() {
+        const tshirtCost = parseFloat(document.getElementById('tshirtCost').value);
+        const designWidth = parseFloat(document.getElementById('designWidth').value);
+        const designLength = parseFloat(document.getElementById('designLength').value);
+        
+        const gangSheetData = document.getElementById('gangSheetSize').value.split(',');
+        const gangSheetWidth = parseFloat(gangSheetData[0]);
+        const gangSheetLength = parseFloat(gangSheetData[1]);
+        const gangSheetCost = parseFloat(gangSheetData[2]);
+        
+        if (!isNaN(tshirtCost) && !isNaN(designWidth) && !isNaN(designLength)) {
+          const graphicsAcrossWidth = Math.floor(gangSheetWidth / designWidth);
+          const graphicsAcrossLength = Math.floor(gangSheetLength / designLength);
           
-          function calculateCost() {
-            const tshirtCost = parseFloat(document.getElementById('tshirtCost').value);
-            const designWidth = parseFloat(document.getElementById('designWidth').value);
-            const designLength = parseFloat(document.getElementById('designLength').value);
-            
-            const gangSheetData = document.getElementById('gangSheetSize').value.split(',');
-            const gangSheetWidth = parseFloat(gangSheetData[0]);
-            const gangSheetLength = parseFloat(gangSheetData[1]);
-            const gangSheetCost = parseFloat(gangSheetData[2]);
-            
-            if (!isNaN(tshirtCost) && !isNaN(designWidth) && !isNaN(designLength)) {
-              const graphicsAcrossWidth = Math.floor(gangSheetWidth / designWidth);
-              const graphicsAcrossLength = Math.floor(gangSheetLength / designLength);
-              
-              const totalGraphics = graphicsAcrossWidth * graphicsAcrossLength;
-              const costPerGraphic = gangSheetCost / totalGraphics;
-              
-              const totalCost = tshirtCost + costPerGraphic;
-              
-              document.getElementById('totalCost').innerText = totalCost.toFixed(2);
-              document.getElementById('designsPerSheet').innerText = totalGraphics;
-              document.getElementById('gangSheetCost').innerText = gangSheetCost.toFixed(2);
-            }
+          const totalGraphics = graphicsAcrossWidth * graphicsAcrossLength;
+          const costPerGraphic = gangSheetCost / totalGraphics;
+          
+          const totalCost = tshirtCost + costPerGraphic;
+          
+          document.getElementById('totalCost').innerText = totalCost.toFixed(2);
+          document.getElementById('designsPerSheet').innerText = `${totalGraphics} @ $${costPerGraphic.toFixed(2)}`;
+          document.getElementById('gangSheetCost').innerText = gangSheetCost.toFixed(2);
+        }
+      }
+
+      Papa.parse('/costalator/price_table.csv', {
+        download: true,
+        header: true,
+        complete: function (results) {
+          populateDropdown(results.data);
+          calculateCost(); // Initial calculation with default values
+        }
+      });
+
+      function populateDropdown(data) {
+        const dropdown = document.getElementById('gangSheetSize');
+        data.forEach((item, index) => {
+          if (item.Width && item.Length && item.Price) {
+            const option = document.createElement('option');
+            const lengthInFeet = (parseFloat(item.Length) / 12).toFixed(2);
+            option.value = `${item.Width},${item.Length},${item.Price}`;
+            option.text = `${lengthInFeet}ft`;
+            dropdown.add(option);
+          } else {
+            console.error(`Missing data on row ${index + 1}`, item);
           }
-
-          Papa.parse('price_table.csv', {
-            download: true,
-            header: true,
-            complete: function (results) {
-              populateDropdown(results.data);
-              calculateCost(); // Initial calculation with default values
-            }
-          });
-
-          function populateDropdown(data) {
-            const dropdown = document.getElementById('gangSheetSize');
-            data.forEach((item, index) => {
-              if (item.Width && item.Length && item.Price) {
-                const option = document.createElement('option');
-                const lengthInFeet = (parseFloat(item.Length) / 12).toFixed(2);
-                option.value = `${item.Width},${item.Length},${item.Price}`;
-                option.text = `${lengthInFeet}ft`;
-                dropdown.add(option);
-              } else {
-                console.error(`Missing data on row ${index + 1}`, item);
-              }
-            });
-
-            dropdown.addEventListener('change', calculateCost); // Update on dropdown change
-          }
-
-          // Attach event listeners to input fields
-          document.getElementById('tshirtCost').addEventListener('input', calculateCost);
-          document.getElementById('designWidth').addEventListener('input', calculateCost);
-          document.getElementById('designLength').addEventListener('input', calculateCost);
         });
-      "></script><link rel="stylesheet" href="style.css"></head> <body class="min-h-screen flex items-center justify-center bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"> <div id="wrap" class="max-w-xl w-full mx-auto bg-base-200 p-6 rounded-lg shadow-lg"> <h1 class="text-2xl font-bold mb-4 text-center">T-Shirt Costalator</h1> <!-- Use grid layout for a 2/3 and 1/3 split --> <div class="grid grid-cols-3 gap-4"> <!-- Inputs section (2/3 width) --> <div class="col-span-2"> <div class="flex flex-wrap gap-4"> <div class="flex flex-col w-full"> <label for="tshirtCost" class="block text-sm font-medium text-gray-700">T-Shirt Cost ($):</label> <input type="number" id="tshirtCost" step="0.01" class="input input-bordered w-full mt-1"> </div> <div class="flex flex-col w-full"> <label for="designWidth" class="block text-sm font-medium text-gray-700">Design Width (inches):</label> <input type="number" id="designWidth" step="0.01" class="input input-bordered w-full mt-1"> </div> <div class="flex flex-col w-full"> <label for="designLength" class="block text-sm font-medium text-gray-700">Design Length (inches):</label> <input type="number" id="designLength" step="0.01" class="input input-bordered w-full mt-1"> </div> <div class="flex flex-col w-full"> <label for="gangSheetSize" class="block text-sm font-medium text-gray-700">Gang Sheet Length (ft):</label> <select id="gangSheetSize" class="select select-bordered w-full mt-1"></select> </div> </div> </div> <!-- Output section (1/3 width) --> <div class="col-span-1 flex flex-col justify-between"> <div class="flex-1 flex flex-col justify-center items-center text-center h-full"> <p class="text-sm font-medium text-gray-700">T-Shirt Cost</p> <div class="card bg-fuchsia-500/25 border border-fuchsia-600 hover:border-fuchsia-400 text-white w-full h-full flex items-center justify-center"> <div class="p-4"> <p class="text-xl font-semibold">$<span id="totalCost">0.00</span></p> </div> </div> </div> <div class="flex-1 flex flex-col justify-center items-center text-center h-full"> <p class="text-sm font-medium text-gray-700">Total Designs</p> <div class="card bg-cyan-500/25 border border-cyan-600 hover:border-cyan-400 text-white w-full h-full flex items-center justify-center"> <div class="p-4"> <p class="text-xl font-semibold"><span id="designsPerSheet">0</span></p> </div> </div> </div> <div class="flex-1 flex flex-col justify-center items-center text-center h-full"> <p class="text-sm font-medium text-gray-700">Gang Sheet Cost</p> <div class="card bg-teal-500/25 text-white border border-teal-600 hover:border-teal-400 w-full h-full flex items-center justify-center"> <div class="p-4"> <p class="text-xl font-semibold">$<span id="gangSheetCost">0.00</span></p> </div> </div> </div> </div> </div> </div> </body></html>
+
+        dropdown.addEventListener('change', calculateCost); // Update on dropdown change
+      }
+
+      // Attach event listeners to input fields
+      document.getElementById('tshirtCost').addEventListener('input', calculateCost);
+      document.getElementById('designWidth').addEventListener('input', calculateCost);
+      document.getElementById('designLength').addEventListener('input', calculateCost);
+    });
+  "
+></script><link rel="stylesheet" href="style.css"></head> <body class="min-h-screen flex items-center justify-center bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"> <div id="wrap" class="max-w-xl w-full mx-auto bg-base-200 p-6 rounded-lg shadow-lg"> <h1 class="text-2xl font-bold mb-4 text-center">T-Shirt Costalator</h1> <!-- Use grid layout for a 2/3 and 1/3 split --> <div class="grid grid-cols-3 gap-4"> <!-- Inputs section (2/3 width) --> <div class="col-span-2"> <div class="flex flex-wrap gap-4"> <div class="flex flex-col w-full"> <label for="tshirtCost" class="block text-sm font-medium text-gray-700">T-Shirt Cost ($):</label> <input type="number" id="tshirtCost" step="0.01" class="input input-bordered w-full mt-1"> </div> <div class="flex flex-col w-full"> <label for="designWidth" class="block text-sm font-medium text-gray-700">Design Width (inches):</label> <input type="number" id="designWidth" step="0.01" class="input input-bordered w-full mt-1"> </div> <div class="flex flex-col w-full"> <label for="designLength" class="block text-sm font-medium text-gray-700">Design Length (inches):</label> <input type="number" id="designLength" step="0.01" class="input input-bordered w-full mt-1"> </div> <div class="flex flex-col w-full"> <label for="gangSheetSize" class="block text-sm font-medium text-gray-700">Gang Sheet Length (ft):</label> <select id="gangSheetSize" class="select select-bordered w-full mt-1"></select> </div> </div> </div> <!-- Output section (1/3 width) --> <div class="col-span-1 flex flex-col justify-between"> <div class="flex-1 flex flex-col justify-center items-center text-center h-full"> <p class="text-sm font-medium text-gray-700">T-Shirt Cost</p> <div class="card bg-fuchsia-500/25 border border-fuchsia-600 hover:border-fuchsia-400 text-white w-full h-full flex items-center justify-center"> <div class="p-4"> <p class="text-xl font-semibold">$<span id="totalCost">0.00</span></p> </div> </div> </div> <div class="flex-1 flex flex-col justify-center items-center text-center h-full"> <p class="text-lg font-semibold"><span id="designsPerSheet">0 @ $0.00</span></p> <div class="card bg-cyan-500/25 border border-cyan-600 hover:border-cyan-400 text-white w-full h-full flex items-center justify-center"> <div class="p-4"> <p class="text-xl font-semibold"><span id="designsPerSheet">0</span></p> </div> </div> </div> <div class="flex-1 flex flex-col justify-center items-center text-center h-full"> <p class="text-sm font-medium text-gray-700">Gang Sheet Cost</p> <div class="card bg-teal-500/25 text-white border border-teal-600 hover:border-teal-400 w-full h-full flex items-center justify-center"> <div class="p-4"> <p class="text-xl font-semibold">$<span id="gangSheetCost">0.00</span></p> </div> </div> </div> </div> </div> </div> </body></html>
