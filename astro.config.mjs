@@ -1,7 +1,6 @@
 import { defineConfig } from 'astro/config';
 
-// https://astro.build/config
 export default defineConfig({
-	site: 'https://seerseven.github.io',
-	base: 'costalator',
+	site: 'https://seerseven.github.io/costalator',
+	base: '/costalator/',
 });
